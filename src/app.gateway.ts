@@ -49,7 +49,13 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
         await this.chatService.postChat(chat_room_id, content, userId);
 
-        this.server.to(chat_room_id.toString()).emit('newMessage', content);
+        const data = {
+            content: content,
+            userId: userId,
+            timestamp: new Date().getTime()
+        }
+
+        this.server.to(chat_room_id.toString()).emit('newMessage', data);
     }
 
     afterInit(server: Server) {
