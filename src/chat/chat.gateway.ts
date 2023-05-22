@@ -10,7 +10,12 @@ import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { HttpService } from '@nestjs/axios';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  path: '/chat-socket',
+  cors: {
+    origin: '*',
+  },
+})
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   httpService: HttpService = new HttpService;
   auth_url: string = "http://34.70.123.231:80/api/profile/get_my_profile";
@@ -28,10 +33,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('message')
   async handleMessage(client: Socket, chat_room_id: number, content: string) {
     const headers = client.handshake.headers;
-    const authToken : string = headers.authorization;
+    const authToken: string = headers.authorization;
 
     const headerz = { 'Content-Type': 'application/json', Authorization: authToken }; // Replace with your desired headers
-    const response = await this.httpService.get(this.auth_url, { headers:headerz }).toPromise();
+    const response = await this.httpService.get(this.auth_url, { headers: headerz }).toPromise();
     const userId = response.data.id;
 
     console.log(`Received message from client ${client.id}:`, content);
@@ -47,7 +52,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+    console.log(`Client connecteda: ${client.id}`);
     this.activeSockets.set(client.id, client);
   }
 

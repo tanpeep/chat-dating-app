@@ -14,7 +14,7 @@ export class ChatController {
 
     @Get('list')
     async listRoom(@Headers('Authorization') authToken: string): Promise<any> {
-        const userData = this.getUser(authToken);
+        const userData = await this.getUser(authToken);
         const userId = userData[0];
         return this.chatService.listRoom(userId);
     }
@@ -29,7 +29,7 @@ export class ChatController {
     async postChat(@Headers('Authorization') authToken: string,
         @Body('chat_room_id') chat_room_id: number,
         @Body('message') content: string): Promise<any> {
-        const userData = this.getUser(authToken);
+        const userData = await this.getUser(authToken);
         const userId = userData[0];
 
         return this.chatService.postChat(chat_room_id, content, userId);
@@ -39,7 +39,7 @@ export class ChatController {
     async createRoom(@Headers('Authorization') authToken: string,
         @Body('agent_id') agent_id: number,
         @Body('agent_username') agent_username: string): Promise<any> {
-        const userData = this.getUser(authToken);
+        const userData = await this.getUser(authToken);
         const userId = userData[0];
         const username = userData[1];
 
