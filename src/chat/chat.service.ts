@@ -22,9 +22,17 @@ export class ChatService {
         return room_list;
     }
 
-    async getChat(id:number): Promise<any> {
+    async getChat(id:number, userId:number): Promise<any> {
         const data = await firestore.collection('chatroom').doc(id.toString()).get();
         const messages = data.data().messages;
+
+        const chatRef = firestore.collection('chat').doc(id.toString());
+        const chatSnapshot = await chatRef.get();
+
+        if(chatSnapshot.data().agents[0].id != userId && chatSnapshot.data().agents[1].id != userId) {
+            return { message: "Chat room unavailable for this user" };
+        }
+
         return messages;
     }
 
@@ -55,10 +63,11 @@ export class ChatService {
             existingMessages.push(message);
             await docRef.update({ messages: existingMessages });
             await chatRef.update({ last_chat: content });
+
+            return message;
         } else {
             throw new Error('Document not found');
         }
-        return "Add message success";
     }
 
     async createRoom(agent_id: number, agent_username: string, userId: number, username: string): Promise<any> {
@@ -87,12 +96,12 @@ export class ChatService {
 
         await cntRef.update({ chat: counter });
 
-        return "Create room success";
+        return {status: "Success", id: counter};
     }
 
     async deleteRoom(chat_room_id): Promise<any> {
         await firestore.collection('chatroom').doc(chat_room_id.toString()).delete();
         await firestore.collection('chat').doc(chat_room_id.toString()).delete();
-        return "Delete chat room success";
+        return {status: "Success"};
     }
 }

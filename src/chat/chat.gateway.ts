@@ -35,7 +35,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const headers = client.handshake.headers;
     const authToken: string = headers.authorization;
 
-    const headerz = { 'Content-Type': 'application/json', Authorization: authToken }; // Replace with your desired headers
+    const headerz = { 'Content-Type': 'application/json', Authorization: authToken };
     const response = await this.httpService.get(this.auth_url, { headers: headerz }).toPromise();
     const userId = response.data.id;
 

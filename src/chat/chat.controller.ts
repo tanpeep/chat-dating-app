@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Post, Headers } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Headers, Res, HttpStatus } from '@nestjs/common';
 import { firestore } from 'src/firebase.service';
 import { Timestamp } from '@google-cloud/firestore';
 import { ChatService } from './chat.service';
 import { HelperService } from 'src/helper.service';
 import { HttpService } from '@nestjs/axios';
+import { Response } from 'express';
 
 @Controller('api/chat')
 export class ChatController {
@@ -22,34 +23,52 @@ export class ChatController {
     @Get(':id')
     async getChat(@Headers('Authorization') authToken: string,
         @Param('id') id: number): Promise<any> {
-        return this.chatService.getChat(id);
+        try {
+            const userData = await this.getUser(authToken);
+            const userId = userData[0];
+            return this.chatService.getChat(id, userId);
+        } catch (error) {
+            return { message: "Chat room unavailable for this user" };
+        }
     }
 
     @Post('post')
     async postChat(@Headers('Authorization') authToken: string,
         @Body('chat_room_id') chat_room_id: number,
         @Body('message') content: string): Promise<any> {
-        const userData = await this.getUser(authToken);
-        const userId = userData[0];
+        try {
+            const userData = await this.getUser(authToken);
+            const userId = userData[0];
 
-        return this.chatService.postChat(chat_room_id, content, userId);
+            return this.chatService.postChat(chat_room_id, content, userId);
+        } catch(error){
+            return { message: "Chat room unavailable for this user" };
+        }
     }
 
     @Post('create')
     async createRoom(@Headers('Authorization') authToken: string,
         @Body('agent_id') agent_id: number,
         @Body('agent_username') agent_username: string): Promise<any> {
-        const userData = await this.getUser(authToken);
-        const userId = userData[0];
-        const username = userData[1];
+        try {
+            const userData = await this.getUser(authToken);
+            const userId = userData[0];
+            const username = userData[1];
 
-        return this.chatService.createRoom(agent_id, agent_username, userId, username);
+            return this.chatService.createRoom(agent_id, agent_username, userId, username);
+        } catch (error) {
+            return { message: "Agent not found" };
+        }
     }
 
     @Delete(':id')
     async deleteRoom(@Headers('Authorization') authToken: string,
-        @Param('id') id: number): Promise<any> {
-        return this.chatService.deleteRoom(id);
+        @Param('id') id: number, @Res() res: Response): Promise<any> {
+        try {
+            return this.chatService.deleteRoom(id);
+        } catch (error) {
+            return { message: "Chat room unavailable for this user" };
+        }
     }
 
     async getUser(token: string) {
@@ -57,10 +76,9 @@ export class ChatController {
         try {
             const headers = { 'Content-Type': 'application/json', Authorization: token }; // Replace with your desired headers
             response = await this.httpService.get(this.auth_url, { headers }).toPromise();
-        } catch(error){
+        } catch (error) {
             throw new Error('Failed to authenticate')
         }
-        
 
         return [response.data.id, response.data.user.username]
     }
