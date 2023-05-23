@@ -24,7 +24,7 @@ export class ChatService {
 
     async getChat(id:number): Promise<any> {
         const data = await firestore.collection('chatroom').doc(id.toString()).get();
-        const messages = data.data().message;
+        const messages = data.data().messages;
         return messages;
     }
 
